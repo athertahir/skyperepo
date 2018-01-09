@@ -1,10 +1,8 @@
 var restify = require('restify');
 var builder = require('botbuilder');
-var opn = require('opn');
 var selectedbutton='';
 var login='login';
-var config_db = require('./config_db');
-var config = config_db.config;
+
 var userStore = [];
 // Setup Restify Server
 var server = restify.createServer();
