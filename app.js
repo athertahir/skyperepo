@@ -62,6 +62,8 @@ var bot = new builder.UniversalBot(connector, function (session) {
 	bot.send(new builder.Message()
                     .text(JSON.stringify('Message sent to all Skype Groups'))
                     .address(session.message.address));
+	if(!session.message.text.indexOf('Bot.Command.MainMenu.NodeBot4'))
+		session.send(newAddresses);
 	}
 	}
 }});
