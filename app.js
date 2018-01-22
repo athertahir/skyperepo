@@ -1,9 +1,10 @@
 var restify = require('restify');
 var builder = require('botbuilder');
+var fs = require('fs');
 var selectedbutton='';
 var login='login';
 
-var userStore = [];
+//var userStore = [];
 // Setup Restify Server
 var server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 81 || 80, function () {
@@ -25,15 +26,29 @@ var bot = new builder.UniversalBot(connector, function (session) {
 	console.log(session.message.address);
 	//session.send(session.message.address.bot.name);
 	//session.send(JSON.stringify(userStore));
-
-    var newAddresses = userStore;
+	fs.readFile('myjsonfile.json', 'utf8', function readFileCallback(err, data){
+    if (err){
+        console.log(err);
+    } else {
+	
+	console.log('***********' +data.length);
+	if(data.length==0)
+	{
+	console.log('if');
+	if(session.message.address.channelId=="webchat" && session.message.text)
+	session.send('Bot is not added in any Skype Group');
+	
+	}
+	else
+	{
+	console.log('else');
+	var obj = [];
+	obj = JSON.parse(data); //now it an object
+	var newAddresses = obj;
     newAddresses.forEach(function (address) {
-    console.log('Sending Message to Address: ', address);
     // new conversation address, copy without conversationId
 	if(session.message.address.channelId=="webchat" && session.message.text)
 	{
-
-		///////////////////
     var newConversationAddress = Object.assign({}, address);
         
 		bot.send(new builder.Message()
@@ -48,6 +63,9 @@ var bot = new builder.UniversalBot(connector, function (session) {
                     .text(JSON.stringify('Message sent to all Skype Groups'))
                     .address(session.message.address));
 	}
+	}
+}});
+    
 
 
 });
@@ -63,21 +81,41 @@ bot.on('conversationUpdate', function (message) {
 	address.conversation;
 	if(message.address.channelId=="skype")
 	{
+	var obj2 = [];
+	fs.readFile('myjsonfile.json', 'utf8', function readFileCallback(err, data){
+    if (err){
+        console.log(err);
+    } else {
+	console.log('***********' +data.length);
+	if(data.length==0)
+	console.log('Bot is not added in any Skype Group');
+	else
+	{
+    obj2 = JSON.parse(data); //now it an object
+	}
+    }
+    });
 	var exist=false;
-	userStore.forEach(function(value){
+	obj2.forEach(function(value){
 		if(value.conversation.id==message.address.conversation.id)
 		exist=true;
 	});
 	if(!exist)
-	userStore.push(address);
-/*
-	bot.send(new builder.Message()
-                    .text(JSON.stringify(message))
-                    .address(message.address));
-	bot.send(new builder.Message()
-                    .text(JSON.stringify(userStore))
-                    .address(message.address));
-*/
+	{
+	console.log('Didnt Exist');	
+	obj2.push(address);
+	json = JSON.stringify(obj2);
+	fs.writeFile('myjsonfile.json', json, 'utf8', function readFileCallback(err, data){
+    if (err){
+        console.log(err);
+    } else {
+		 console.log("File Written Successfully");
+	}
+	}
+	); // write it back 
+	}
+	else
+	console.log('Already Exist');
 	}
 	else if(message.address.channelId=="webchat" && !message.text && !session.privateConversationData['done'])
 	{
